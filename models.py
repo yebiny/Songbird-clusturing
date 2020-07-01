@@ -27,6 +27,8 @@ def build_vae(x_data, z_dimension):
     y = layers.LeakyReLU()(y)
     y = layers.Conv2D(32, 3, strides=2, padding="same")(y)
     y = layers.LeakyReLU()(y)
+    y = layers.Conv2D(32, 3, strides=2, padding="same")(y)
+    y = layers.LeakyReLU()(y)
     y_shape = y.shape
     
     y = layers.Flatten()(y)
@@ -48,7 +50,9 @@ def build_vae(x_data, z_dimension):
     y = layers.LeakyReLU()(y)
     y = layers.Conv2DTranspose(32, 3, strides=2, padding="same")(y)
     y = layers.LeakyReLU()(y)
-    y = layers.Conv2DTranspose(3, 3, strides=2, padding="same")(y)
+    y = layers.Conv2DTranspose(32, 3, strides=2, padding="same")(y)
+    y = layers.LeakyReLU()(y)
+    y = layers.Conv2DTranspose(x_data.shape[3], 3, strides=2, padding="same")(y)
     y = layers.Activation('sigmoid')(y)
 
     encoder = models.Model(inputs, [z_mean, z_log_var, z], name ='encoder')
