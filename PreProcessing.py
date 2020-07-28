@@ -1,37 +1,36 @@
+import io
+import cv2
 from def_dict import *
-from DataCleaning import *
+from splitWavProcess import *
 
-import glob, os
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-
+def get_img_from_fig(fig, dpi=100):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=dpi)
+    buf.seek(0)
+    img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)
+    buf.close()
+    img = cv2.imdecode(img_arr, 1)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+ 
+    return img
 
 class PreProcess():
 
-    def __init__(self, org_path, load_path, save_path):
-        self.org_path =org_path
-        self.load_path=load_path
-        self.save_path=save_path
+    def __init__(self, path):
+        self.wav_list = np.load('%s/wav_list.npy'%(path))
+        self.sylla_list = np.load('%s/sylla_list.npy'%(path))
 
-        self.wav_name = np.load('%s/wav_name.npy'%(load_path))
-        self.wav_info = np.load('%s/syllables.npy'%(load_path))
+    def draw_wav(self, idx):
 
-    def get_wav_path(self, idx):
-        this_wav=self.wav_name[idx]
-        this_name = this_wav.split('_')[1]
-        wav_path = '%s/%s.wav'%(self.org_path+this_name, this_wav)
-        return wav_path
-
-    def draw_splited_wav(self, idx):
-
-        wav_path = self.get_wav_path(idx)
-        draw_wav(wav_path)
-        draw_specgram(wav_path)
+        wav=self.wav_list[idx]        
+        name = wav.split('/')[-1].split('.')[0]
         
-        x, y = wavfile.read(wav_path)
-        target = self.wav_info[self.wav_info[:,0]==idx]
-        fig = plt.figure(figsize=(20,4))
+        draw_split_wav(wav, 'Idx %i: %s'%(idx,name))
+        draw_specgram(wav)
+        
+        x, y = wavfile.read(wav)
+        target = self.sylla_list[self.sylla_list[:,0]==idx]
+        fig = plt.figure(figsize=(20,3))
         for i in range(len(target)):
             start = target[i][1]
             end = start+target[i][2]
@@ -45,47 +44,59 @@ class PreProcess():
 
         plt.show()
 
-    def get_syllable_value(self, syllable):
+    def get_syllable_value(self, idx):
     
-        idx = syllable[0]
-        start = syllable[1]
-        lenth = syllable[2]
+        wav_idx = self.sylla_list[idx][0]
+        start = self.sylla_list[idx][1]
+        lenth = self.sylla_list[idx][2]
         end = start+lenth
     
-        wav_path = self.get_wav_path(idx)
-        x, y = wavfile.read(wav_path)
+        wav = self.wav_list[wav_idx]
+        x, y = wavfile.read(wav)
         val = y[:,0][start:end]
     
         return x, val
     
-    def draw_syllable_wav(self, syllable):
+    def draw_syllable(self, idx):
+        
+        x, val = self.get_syllable_value(idx)
 
-        x, val = self.get_syllable_value(syllable)
+        fig = plt.figure(figsize=(2,3))
 
-        fig = plt.figure(figsize=(1,2))
-        plt.plot(val, color='k')
-        plt.axis('off'), plt.xticks([]), plt.yticks([])
-        plt.tight_layout()
-        plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
-        plt.show()
-        plt.close('all')
-    
-    def draw_syllable_spectogram(self, syllable, save_name=None):
-        x, val = self.get_syllable_value(syllable)
-        xsize = round(round(len(val)/1000, 2)/6,2)
-        ysize = 12/6
-        print(xsize, ysize)
-        fig = plt.figure(figsize=(xsize,ysize))
+        plt.subplot(1,2,1)
         plt.specgram(val, Fs = x)
         plt.axis('off'), plt.xticks([]), plt.yticks([])
         plt.tight_layout()
         plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
-    
-        if save_name !=None:
-            plt.savefig(save_name, bbox_inces='tight',
-                    pad_inches=0,
-                    dpi=100)
-        else:
-            plt.show()
-    
+        
+        plt.subplot(1,2,2)
+        plt.plot(val, color='k')
+        plt.axis('off'), plt.xticks([]), plt.yticks([])
+        plt.tight_layout()
+        plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
+        
+        plt.show()
         plt.close('all')
+        
+        xsize = round(round(len(val)/1000, 2)/6,2)
+        ysize = 12/6
+        print(xsize, ysize)
+
+    def get_img_arr(self, idx, xsize, ysize):
+        
+        x, val = self.get_syllable_value(idx)
+        
+        xlen = xsize/100
+        ylen = ysize/100
+        
+        fig = plt.figure(figsize=(xlen, ylen))
+        plt.specgram(val, Fs = x)
+        plt.axis('off'), plt.xticks([]), plt.yticks([])
+        plt.tight_layout()
+        plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
+        plt.close('all')
+        
+        # you can get a high-resolution image as numpy array!!
+        arr = get_img_from_fig(fig)    
+    
+        return arr
