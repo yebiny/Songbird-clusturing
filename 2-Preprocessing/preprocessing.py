@@ -82,7 +82,7 @@ class PreProcess():
         ysize = 12/6
         print(xsize, ysize)
 
-    def get_img_arr(self, idx, xsize, ysize):
+    def get_img_arr(self, idx, xsize, ysize, opt='gray'):
         
         x, val = self.get_syllable_value(idx)
         
@@ -90,13 +90,20 @@ class PreProcess():
         ylen = ysize/100
         
         fig = plt.figure(figsize=(xlen, ylen))
-        plt.specgram(val, Fs = x)
+        
+        if opt =='gray':
+            plt.specgram(val, Fs = x, cmap='gray')
+        else: 
+            plt.specgram(val, Fs = x)
         plt.axis('off'), plt.xticks([]), plt.yticks([])
         plt.tight_layout()
         plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1, hspace = 0, wspace = 0)
+        #plt.show()
         plt.close('all')
         
         # you can get a high-resolution image as numpy array!!
         arr = get_img_from_fig(fig)    
-    
+        if opt=='gray':
+            arr=arr[:,:,0]
+
         return arr

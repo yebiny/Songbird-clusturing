@@ -2,6 +2,16 @@ import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
+import os, sys
+
+def if_not_exit(path):
+	if not os.path.exists(path):
+		print(path, 'is not exist.')
+		exit()
+		
+def if_not_make(path):
+	if not os.path.exists(path):
+		os.makedirs(path)
 
 c_list=['r','salmon','chocolate',
         'darkorange','gold','yellow',
