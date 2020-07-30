@@ -20,9 +20,12 @@ def reduce_lr(pre_v_loss, v_loss, count, lr, patience, factor, min_lr):
 
 class TrainVAE():
 
-    def __init__(self, x_train , latent_dim, save_path):
+    def __init__(self, x_train , x_test, latent_dim, save_path):
         self.x_train = x_train
+        self.x_test = x_test
         self.save_path = save_path
+        self.ckp_dir = save_path+'/ckp/'
+        self.npy_dir = save_path+'/npy/'
     
         encoder, decoder, vae = build_vae(x_train, latent_dim)
         self.encoder = encoder
@@ -67,9 +70,8 @@ class TrainVAE():
         
         train_ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train)).batch(batch_size)
         
-        ckp_dir = self.save_path+'/ckp/'
         checkpoint = tf.train.Checkpoint(step=tf.Variable(1), encoder=self.encoder, decoder=self.decoder, vae=self.vae)
-        checkpoint.restore(tf.train.latest_checkpoint(ckp_dir))
+        #checkpoint.restore(tf.train.latest_checkpoint(self.ckp_dir))
         csv_logger = tf.keras.callbacks.CSVLogger(self.save_path+'/training.log')
 
         optimizer = tf.keras.optimizers.Adam(0.001)
@@ -103,4 +105,20 @@ class TrainVAE():
             df.to_csv(self.save_path+'/process.csv', mode='a', header=False)
             
             # Reset loss
-            train_loss.reset_states()    
+            train_loss.reset_states()   
+
+    def save_latent_val(self):
+
+        checkpoint = tf.train.Checkpoint(step=tf.Variable(1), encoder=self.encoder, decoder=self.decoder, vae=self.vae)
+        checkpoint.restore(tf.train.latest_checkpoint(self.ckp_dir))
+
+        rec = self.vae.predict(self.x_train)
+        lat = self.encoder.predict(self.x_train)[2]
+        rec_test = self.vae.predict(self.x_test)
+        lat_test = self.encoder.predict(self.x_test)[2]
+
+        np.save(self.npy_path+'/rec', rec)
+        np.save(self.npy_path+'/lat', lat)
+        np.save(self.npy_path+'/rec_test', rec_test)
+        np.save(self.npy_path+'/lat_test', lat_test)
+        print(rec.shape, lat.shape, rec_test.shape, lat_test.shape)
