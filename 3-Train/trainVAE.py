@@ -29,7 +29,8 @@ class TrainVAE():
         self.x_test = np.load(data_path+'/x_test.npy')
         self.ckp_dir = save_path+'/ckp/'
         self.npy_dir = save_path+'/npy/'
-    
+        if_not_make(self.npy_dir)
+
         encoder, decoder, vae = build_vae(self.x_train, latent_dim)
         self.encoder = encoder
         self.decoder = decoder
