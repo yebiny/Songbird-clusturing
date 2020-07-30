@@ -4,6 +4,7 @@ import pandas as pd
 import os
 
 from models import *
+from basic import *
 
 def reduce_lr(pre_v_loss, v_loss, count, lr, patience, factor, min_lr):
     if v_loss < pre_v_loss:
@@ -20,17 +21,23 @@ def reduce_lr(pre_v_loss, v_loss, count, lr, patience, factor, min_lr):
 
 class TrainVAE():
 
-    def __init__(self, x_train , x_test, latent_dim, save_path):
-        self.x_train = x_train
-        self.x_test = x_test
+    def __init__(self, latent_dim, data_path, save_path, ckp='y'):
+        self.data_path = data_path
         self.save_path = save_path
+        
+        self.x_train = np.load(data_path+'/x_train.npy')
+        self.x_test = np.load(data_path+'/x_test.npy')
         self.ckp_dir = save_path+'/ckp/'
         self.npy_dir = save_path+'/npy/'
     
-        encoder, decoder, vae = build_vae(x_train, latent_dim)
+        encoder, decoder, vae = build_vae(self.x_train, latent_dim)
         self.encoder = encoder
         self.decoder = decoder
         self.vae = vae
+        
+        self.checkpoint = tf.train.Checkpoint(step=tf.Variable(1), encoder=self.encoder, decoder=self.decoder, vae=self.vae)
+        if ckp=='y':
+            self.checkpoint.restore(tf.train.latest_checkpoint(self.ckp_dir))
 
     def get_rec_loss(self, inputs, predictions):
         rec_loss = tf.keras.losses.binary_crossentropy(inputs, predictions)
@@ -66,15 +73,12 @@ class TrainVAE():
         # Update train loss
         train_loss(loss)
 
-    def train(self, epochs, batch_size):
+    def train(self, epochs, batch_size, init_lr=0.001):
         
         train_ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train)).batch(batch_size)
-        
-        checkpoint = tf.train.Checkpoint(step=tf.Variable(1), encoder=self.encoder, decoder=self.decoder, vae=self.vae)
-        #checkpoint.restore(tf.train.latest_checkpoint(self.ckp_dir))
         csv_logger = tf.keras.callbacks.CSVLogger(self.save_path+'/training.log')
 
-        optimizer = tf.keras.optimizers.Adam(0.001)
+        optimizer = tf.keras.optimizers.Adam(init_lr)
         train_loss = tf.keras.metrics.Mean(name='train_loss')
         valid_loss = tf.keras.metrics.Mean(name='valid_loss') 
         
@@ -97,7 +101,7 @@ class TrainVAE():
             # Save checkpoint if best v_loss 
             if t_loss < best_loss:
                 best_loss = t_loss
-                checkpoint.save(file_prefix=os.path.join(self.save_path+'/ckp/', 'ckp'))
+                self.checkpoint.save(file_prefix=os.path.join(self.save_path+'/ckp/', 'ckp'))
             
             # Save loss, lerning rate
             print("* %i * loss: %f,  best_loss: %f, l_rate: %f, lr_count: %i"%(epoch, t_loss, best_loss, l_rate, count ))
@@ -107,18 +111,43 @@ class TrainVAE():
             # Reset loss
             train_loss.reset_states()   
 
-    def save_latent_val(self):
-
-        checkpoint = tf.train.Checkpoint(step=tf.Variable(1), encoder=self.encoder, decoder=self.decoder, vae=self.vae)
-        checkpoint.restore(tf.train.latest_checkpoint(self.ckp_dir))
+    def save_latent_val(self, save=None):
 
         rec = self.vae.predict(self.x_train)
         lat = self.encoder.predict(self.x_train)[2]
         rec_test = self.vae.predict(self.x_test)
         lat_test = self.encoder.predict(self.x_test)[2]
 
-        np.save(self.npy_path+'/rec', rec)
-        np.save(self.npy_path+'/lat', lat)
-        np.save(self.npy_path+'/rec_test', rec_test)
-        np.save(self.npy_path+'/lat_test', lat_test)
-        print(rec.shape, lat.shape, rec_test.shape, lat_test.shape)
+        if save !=None:
+            np.save(self.npy_dir+'/rec', rec)
+            np.save(self.npy_dir+'/lat', lat)
+            np.save(self.npy_dir+'/rec_test', rec_test)
+            np.save(self.npy_dir+'/lat_test', lat_test)
+            print(rec.shape, lat.shape, rec_test.shape, lat_test.shape)
+        
+        return rec, lat, rec_test, lat_test
+
+
+    def plot_recimg(self, idx):
+        org = self.x_train[idx]
+        rec = self.vae.predict(org[np.newaxis, :])[0]
+
+        orgimg = org.reshape(org.shape[:-1])
+        recimg = rec.reshape(rec.shape[:-1])
+        
+        figure = plt.figure(figsize=(4,4))
+        
+        plt.subplot(1,2,1)
+        plt.yticks([])
+        plt.xticks([])
+        plt.title('Org') 
+        plt.imshow(orgimg)
+
+        plt.subplot(1,2,2)
+        plt.yticks([])
+        plt.xticks([])
+        plt.title('Rec')
+        plt.imshow(recimg)
+        
+        plt.show()
+        
