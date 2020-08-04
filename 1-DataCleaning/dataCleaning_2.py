@@ -1,8 +1,7 @@
-import os, glob
-from splitWavProcess import *
-from Draw import *
-from def_dict import *
 
+import glob
+from splitWavProcess import *
+##
 class DataClean():
     
     def __init__(self, data_path):

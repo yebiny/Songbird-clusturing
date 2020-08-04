@@ -1,6 +1,9 @@
+import os, sys
 import numpy as np
 from sklearn.model_selection import train_test_split
-from  def_dict import *
+
+sys.path.append('../')
+from basicDrawing import *
 
 def save_data_split(data_path, x_data, y_data, test_size):
 

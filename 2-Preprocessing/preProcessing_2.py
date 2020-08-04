@@ -1,6 +1,5 @@
 import io
 import cv2
-from def_dict import *
 from splitWavProcess import *
 
 def get_img_from_fig(fig, dpi=100):
