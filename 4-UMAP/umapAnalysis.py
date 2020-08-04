@@ -5,7 +5,7 @@ from sklearn.cluster import KMeans
 import umap
 
 sys.path.append('../')
-from basic import *
+from basicDrawing import *
 
 class UmapAnalysis():
     def __init__(self, datadir, resdir):
@@ -54,4 +54,7 @@ class UmapAnalysis():
         
         if save!=None:
             plt.savefig('%s/project_%i'%(self.save_dir, n_cluster))
+        else: 
+            if save!=None:
+                plt.savefig('%s/project'%(self.save_dir))
         plt.show()

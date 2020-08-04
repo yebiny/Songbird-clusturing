@@ -1,8 +1,8 @@
-import librosa
+import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
-import os, sys
+import librosa
 
 def if_not_exit(path):
 	if not os.path.exists(path):
@@ -36,7 +36,6 @@ def draw_wav(wav_file):
     fig = plt.figure(figsize=(15,3))
     plt.plot(y, color = c_base, label='speech waveform', alpha=0.6)
     plt.show()
-
 
 def hist_syllable_lenth(sylla_len, axis=None):
    if axis !=None:
