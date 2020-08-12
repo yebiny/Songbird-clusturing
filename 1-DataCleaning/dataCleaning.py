@@ -49,7 +49,7 @@ class Abnormal():
         return overlen_idx[:,0]
     
     def save_abnormal_img(self, idx_list, save_path):
-        save_path = save_path+'/abnormal/'
+        save_path = save_path+'/pre//abnormal/'
         if_not_make(save_path)
     
         for idx in idx_list:

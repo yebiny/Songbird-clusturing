@@ -21,14 +21,15 @@ def reduce_lr(pre_v_loss, v_loss, count, lr, patience, factor, min_lr):
 
 class TrainVAE():
 
-    def __init__(self, latent_dim, data_path, save_path, ckp='y'):
+    def __init__(self, latent_dim, data_path, save_dir,  ckp='y'):
         self.data_path = data_path
-        self.save_path = save_path
-        
-        self.x_train = np.load(data_path+'/x_train.npy')
-        self.x_test = np.load(data_path+'/x_test.npy')
-        self.ckp_dir = save_path+'/ckp/'
-        self.npy_dir = save_path+'/npy/'
+        self.save_path = '%s/%s'%(data_path, save_dir)
+        if_not_make(self.save_path)
+
+        self.x_train = np.load(data_path+'pre/x_train.npy')
+        self.x_test = np.load(data_path+'pre/x_test.npy')
+        self.ckp_dir = self.save_path+'/ckp/'
+        self.npy_dir = self.save_path+'/npy/'
         if_not_make(self.npy_dir)
 
         encoder, decoder, vae = build_vae(self.x_train, latent_dim)
