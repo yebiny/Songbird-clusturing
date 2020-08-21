@@ -23,15 +23,20 @@ class UmapAnalysis():
         self.save_dir='%s/umap'%resdir
         if_not_make(self.save_dir)
     
-    def umap_embedding(self, data, save=None):
-        reducer = umap.UMAP(random_state=42)
-        reducer.fit(data)
-        umaped = reducer.transform(data)
-        assert(np.all(umaped == reducer.embedding_))
+    def umap_embedding(self, data, n_neighbors=50, save=None):
+        
+        fit = umap.UMAP(
+            n_neighbors=n_neighbors,
+            min_dist=0.1,
+            n_components=2,
+            metric='euclidean'
+            )
+        umaped = fit.fit_transform(data);
         print(umaped.shape)
         
         if save!=None:
-            np.save('%s/umaped'%self.save_dir, umaped )
+            np.save('%s/umaped'%save, umaped )
+
         return umaped
 
     def kmeans_clustering(self, data, n_cluster, save=None):
@@ -42,7 +47,7 @@ class UmapAnalysis():
         print(labels.shape)
      
         if save!=None:
-            np.save('%s/labels_%i'%(self.save_dir, n_cluster) ,labels)
+            np.save('%s/labels_%i'%(save, n_cluster) ,labels)
         return labels
     
     def hdbscan_clustering(self, data, n_cluster, save=None):
@@ -52,12 +57,13 @@ class UmapAnalysis():
         print(labels.shape)
      
         if save!=None:
-            np.save('%s/labels_%i'%(self.save_dir, n_cluster) ,labels)
+            np.save('%s/labels_%i'%(save, n_cluster) ,labels)
         return labels
 
-    def plot_projection(self, data, labels='yellowgreen', figsize=(12,8), save=None):
-            
+    def plot_projection(self, data, labels='yellowgreen', figsize=(10,8), title = 'Projection', save=None):
+        
         plt.figure(figsize=figsize)
+        plt.title(title)
         plt.scatter(data[:, 0], data[:, 1], c= labels, alpha=0.8, cmap='rainbow', marker='.')
         if type(labels)!=str:
             n_cluster = max(labels)+1
@@ -65,8 +71,8 @@ class UmapAnalysis():
             plt.title('UMAP projection of the Latent space', fontsize=24);
         
             if save!=None:
-                plt.savefig('%s/project_%i'%(self.save_dir, n_cluster))
+                plt.savefig('%s/project_%i'%(save, n_cluster))
         else: 
             if save!=None:
-                plt.savefig('%s/project'%(self.save_dir))
+                plt.savefig('%s/project'%(save))
         plt.show()
