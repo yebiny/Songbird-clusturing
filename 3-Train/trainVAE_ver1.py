@@ -6,18 +6,6 @@ import os
 from models import *
 from basic import *
 
-def reduce_lr(pre_v_loss, v_loss, count, lr, patience, factor, min_lr):
-    if v_loss < pre_v_loss:
-        count = 0
-    else:
-        count += 1
-        if count >= patience: 
-            lr = lr*factor
-            if lr < min_lr: 
-                lr = min_lr
-            count = 0
-            print('reduce learning rate..', lr)    
-    return count, lr
 
 class TrainVAE():
 
@@ -113,43 +101,3 @@ class TrainVAE():
             # Reset loss
             train_loss.reset_states()   
 
-    def save_latent_val(self, save=None):
-
-        rec = self.vae.predict(self.x_train)
-        lat = self.encoder.predict(self.x_train)[2]
-        rec_test = self.vae.predict(self.x_test)
-        lat_test = self.encoder.predict(self.x_test)[2]
-
-        if save !=None:
-            np.save(self.npy_dir+'/rec', rec)
-            np.save(self.npy_dir+'/lat', lat)
-            np.save(self.npy_dir+'/rec_test', rec_test)
-            np.save(self.npy_dir+'/lat_test', lat_test)
-            print(rec.shape, lat.shape, rec_test.shape, lat_test.shape)
-        
-        return rec, lat, rec_test, lat_test
-
-
-    def plot_recimg(self, idx):
-        org = self.x_train[idx]
-        rec = self.vae.predict(org[np.newaxis, :])[0]
-
-        orgimg = org.reshape(org.shape[:-1])
-        recimg = rec.reshape(rec.shape[:-1])
-        
-        figure = plt.figure(figsize=(4,4))
-        
-        plt.subplot(1,2,1)
-        plt.yticks([])
-        plt.xticks([])
-        plt.title('Org') 
-        plt.imshow(orgimg)
-
-        plt.subplot(1,2,2)
-        plt.yticks([])
-        plt.xticks([])
-        plt.title('Rec')
-        plt.imshow(recimg)
-        
-        plt.show()
-        
