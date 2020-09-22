@@ -1,19 +1,19 @@
 from models import *
 import matplotlib.pyplot as plt
 import numpy as np
-
-def get_z_rec(x_test, model, save_path=None):
+import argparse
+def get_z_rec(x_data, model, save_path=None):
     encoder = model.layers[1]
-    z = encoder.predict(x_test)[2]
-    x_rec = model.predict(x_test)
+    z = encoder.predict(x_data)[2]
+    x_rec = model.predict(x_data)
     
     if save_path:
         np.save('%s/x_lat'%save_path, z)
         np.save('%s/x_rec'%save_path, x_rec)
-        print('save dataset')
+        print('** save dataset')
     return z, x_rec
 
-def plot_recimg(x_test, x_rec, g=1):
+def plot_recimg(x_data, x_rec, save_path, g=1):
     
     def plot_img(img, title=None):
         plt.yticks([])
@@ -21,7 +21,7 @@ def plot_recimg(x_test, x_rec, g=1):
         plt.title(title)
         plt.imshow(img)
 
-    orgimg = x_test.reshape(x_test.shape[:-1])
+    orgimg = x_data.reshape(x_data.shape[:-1])
     recimg = x_rec.reshape(x_rec.shape[:-1])
 
     w, h = 8,2
@@ -35,15 +35,33 @@ def plot_recimg(x_test, x_rec, g=1):
         plt.subplot(2,w,idx+w+1)
         plot_img(recimg[gidx])
 
-    plt.show()
+    if save_path:
+        plt.savefig(save_path+'/plot_recimg_%i'%g)
+        print('** save plot')
+    else:
+        plt.show()
 
 def main():
-    model_path='../5-Results/bengal/0812/train2/model.h5'
-    data_path ='../5-Results/bengal/0812/pre/data.npy'
+    opt = argparse.ArgumentParser()
+    opt.add_argument(dest='path', type=str, help='model path')
+    opt.add_argument('-s',  dest='save', type=str, default='y', help='save or not')
+    argv = opt.parse_args()
+    print('* Working space: ', argv.path)
     
+    model_path='%s/model.h5'%argv.path
+    data_path ='%s/../pre/x_test.npy'%argv.path
+
     data = np.load(data_path)
+    print('* Load dataset: ', data.shape)
     model = tf.keras.models.load_model(model_path, compile=False)
     model.summary()
+   
+    print('* Save latent vectors and reconstrcted images')
+    if argv.save == 'y':
+        z, x_rec = get_z_rec(data, model, argv.path)
+    else: z, x_rec = get_z_rec(data, model)
     
+    plot_recimg(data, x_rec, argv.path)
+
 if __name__=='__main__':
     main()
