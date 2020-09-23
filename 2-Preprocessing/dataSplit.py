@@ -1,25 +1,34 @@
 import os, sys
 import numpy as np
+import argparse
 from sklearn.model_selection import train_test_split
 
 sys.path.append('../')
 from basicDrawing import *
 
-def save_data_split(data_path, x_data, y_data, test_size):
+def save_data_split(data_path, save_path, split_size):
 
-    x_path = data_path+'/'+x_data
-    y_path = data_path+'/'+y_data
-    x_data = np.load(x_path)
-    y_data = np.load(y_path)
-
-    x_data = np.reshape((x_data/255), (x_data.shape[0], x_data.shape[1], x_data.shape[2], 1))
-    y_data = y_data
-
-    x_train, x_test, y_train, y_test = train_test_split( x_data,  y_data, test_size=test_size, random_state=321)
-    print('* Training data shape: ', x_train.shape, y_train.shape)
-    print('* Test data shape : ', x_test.shape, y_test.shape)
+    data = np.load(data_path)
+    x_data = np.expand_dims(data, axis=3)    
+    print('* Convert data shape ', data.shape, ' to ',x_data.shape)
     
-    np.save(data_path+'/x_train', x_train)
-    np.save(data_path+'/y_train', y_train)
-    np.save(data_path+'/x_test', x_test)
-    np.save(data_path+'/y_test', y_test)
+    x_train, x_test, _,_ = train_test_split( x_data, x_data, test_size=split_size, random_state=321)
+    x_valid, x_test, _,_ = train_test_split( x_test, x_test, test_size=split_size, random_state=321)
+    print('* Splited data shape: ', x_train.shape, x_valid.shape, x_test.shape)
+    
+    np.save(save_path+'/x_train', x_train)
+    np.save(save_path+'/x_valdi', x_valid)
+    np.save(save_path+'/x_test', x_test)
+
+
+def main():
+    opt = argparse.ArgumentParser()
+    opt.add_argument(dest='data_path', type=str, help='datasets path')
+    opt.add_argument(dest='save_path', type=str, help='save path')
+    opt.add_argument('-s',dest='split_size', type=float, default=0.2, help='test split size')
+    argv = opt.parse_args()
+
+    save_data_split(argv.data_path, argv.save_path, argv.split_size) 
+
+if __name__=='__main__':
+    main()

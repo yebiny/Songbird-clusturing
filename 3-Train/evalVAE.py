@@ -49,19 +49,22 @@ def main():
     print('* Working space: ', argv.path)
     
     model_path='%s/model.h5'%argv.path
-    data_path ='%s/../pre/x_test.npy'%argv.path
+    data_path ='%s/../pre/data.npy'%argv.path
+    test_path ='%s/../pre/x_test.npy'%argv.path
 
     data = np.load(data_path)
-    print('* Load dataset: ', data.shape)
+    x_test = np.load(test_path)
+    print('* Load dataset: ', data.shape, x_test.shape)
     model = tf.keras.models.load_model(model_path, compile=False)
     model.summary()
    
-    print('* Save latent vectors and reconstrcted images')
+    print('* Save reconstructed image with testset')
+    z, x_rec = get_z_rec(x_test, model)
+    plot_recimg(x_test, x_rec, argv.path)
+    
+    print('* Save latent vectors')
     if argv.save == 'y':
         z, x_rec = get_z_rec(data, model, argv.path)
-    else: z, x_rec = get_z_rec(data, model)
-    
-    plot_recimg(data, x_rec, argv.path)
 
 if __name__=='__main__':
     main()
