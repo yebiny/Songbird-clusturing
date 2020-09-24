@@ -43,8 +43,8 @@ def plot_recimg(x_data, x_rec, save_path, g=1):
 
 def main():
     opt = argparse.ArgumentParser()
-    opt.add_argument(dest='path', type=str, help='model path')
-    opt.add_argument('-s',  dest='save', type=str, default='y', help='save or not')
+    opt.add_argument(dest='path', type=str, help='directory path( where model? )')
+    opt.add_argument('-s',  dest='save', type=str, default='y', help='save: y or not(default: y)')
     argv = opt.parse_args()
     print('* Working space: ', argv.path)
     
