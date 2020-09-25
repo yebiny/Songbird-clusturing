@@ -3,25 +3,6 @@ import umap
 import numpy as np
 import matplotlib.pyplot as plt
 
-def get_kmeans_labels(data, n_clusters):
-    kmeans_labels = KMeans(init="k-means++", n_clusters=n_clusters, random_state=0, max_iter = 5).fit(data).labels_
-    return kmeans_labels
-
-def umap_embedding(data, n_neighbors=50, save=None):
-
-    fit = umap.UMAP(
-        n_neighbors=n_neighbors,
-        min_dist=0.1,
-        n_components=2,
-        metric='euclidean'
-        )
-    umaped = fit.fit_transform(data);
-    print(umaped.shape)
-
-    if save!=None:
-        np.save('%s/umaped'%save, umaped )
-
-    return umaped
 
 def plot_cluster(data, labels, save=None):
     x = data[:,0]
@@ -56,3 +37,28 @@ def plot_project(data_2d, c_lenth=1, save=None):
     if save!=None:
         plt.savefig(save)
     plt.show()
+
+class Projection():
+    def __init__(self, z_path, n_cluster=12):
+        self.z = np.load(z_path)
+        self.path = z_path.replace(z_path.split('/')[-1], '/')
+        print('lat shape: ',self.z.shape, 'path: ', self.path)
+        
+        self.fit = umap.UMAP(
+            n_neighbors=60,
+            min_dist=0.1,
+            n_components=2,
+            metric='euclidean'
+            )
+    def umap_embedding(self, save=None):
+        print(self.fit) 
+        umaped = self.fit.fit_transform(self.z)
+        print(umaped.shape)
+        if save!=None:
+            np.save('%s/z_umap'%self.path, umaped)
+        
+        return umaped
+            
+    def get_kmeans_labels(self, n_clusters):
+        kmeans_labels = KMeans(init="k-means++", n_clusters=n_clusters, random_state=0, max_iter = 5).fit(self.umap).labels_
+        return kmeans_labels
