@@ -44,15 +44,15 @@ class Projection():
         self.path = z_path.replace(z_path.split('/')[-1], '/')
         print('lat shape: ',self.z.shape, 'path: ', self.path)
         
-        self.fit = umap.UMAP(
-            n_neighbors=60,
+    
+    def umap_embedding(self, nei=50, save=None):
+        fit = umap.UMAP(
+            n_neighbors=nei,
             min_dist=0.1,
             n_components=2,
             metric='euclidean'
             )
-    def umap_embedding(self, save=None):
-        print(self.fit) 
-        umaped = self.fit.fit_transform(self.z)
+        umaped = fit.fit_transform(self.z)
         print(umaped.shape)
         if save!=None:
             np.save('%s/z_umap'%self.path, umaped)
