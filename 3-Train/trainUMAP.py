@@ -20,20 +20,19 @@ def plot_cluster(data, labels, save=None):
     
     plt.show()
     
-def plot_project(data_2d, c_lenth=1, save=None):
+def plot_project(data_2d, c_lenth, save=None):
 
     x = data_2d[:,0]
     y = data_2d[:,1]
 
-
-    if type(c_lenth)==int:
-        fig=plt.figure(figsize=(6,6))
-        c = plt.scatter(x, y, marker='.', c='black', alpha=0.4)      
-    else:
-        fig=plt.figure(figsize=(8,6))
-        #colors = (c_lenth-np.min(c_lenth))/(np.max(c_lenth)-np.min(c_lenth))
-        c = plt.scatter(x, y, c=c_lenth, cmap='jet', marker='.')
-        plt.colorbar(c)
+    fig=plt.figure(figsize=(15,6))
+    plt.subplot(1,2,1) 
+    plt.scatter(x, y, marker='.', c='black', alpha=0.4)      
+    
+    plt.subplot(1,2,2) 
+    c = plt.scatter(x, y, c=c_lenth, cmap='jet', marker='.')
+    #plt.colorbar(c)
+   
     if save!=None:
         plt.savefig(save)
     plt.show()
