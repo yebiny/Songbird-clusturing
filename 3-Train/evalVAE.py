@@ -19,13 +19,13 @@ def plot_recimg(x_data, x_rec, save_path, g=1):
         plt.yticks([])
         plt.xticks([])
         plt.title(title)
-        plt.imshow(img)
+        plt.imshow(img, cmap='gray')
 
     orgimg = x_data.reshape(x_data.shape[:-1])
     recimg = x_rec.reshape(x_rec.shape[:-1])
 
     w, h = 8,2
-    figure = plt.figure(figsize=(w*2,h*4))
+    figure = plt.figure(figsize=(w*2,h*4), )
     for idx in range(w):
 
         gidx = idx+w*g
