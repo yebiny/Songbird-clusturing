@@ -1,2 +1,2 @@
 # birdSong
-Bird's song classification with VAE
+Bird's song Clustering with VAE
