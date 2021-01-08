@@ -29,12 +29,31 @@ def draw_split_wav(wav_list, syllable_list, idx, save_name=None):
         end  = start + syllable[i][2]
         color = c_list[i%len(c_list)]
         plt.plot( x[start:end],y[start:end], color = color, alpha = 0.75)
-
+        
     plt.title(wav_list[idx])
     if save_name == None:
         plt.show()
     else:
         plt.savefig(save_name)
+
+def draw_split_spectrogram(wav_list, syllable_list, idx, save_name=None):
+    x, y = wavfile.read(wav_list[idx])
+
+    syllable = syllable_list[syllable_list[:,0]==idx] 
+    fig = plt.figure(figsize=(20,3))
+    for i in range(len(syllable)):
+        start = syllable[i][1]
+        end = start+syllable[i][2]
+        
+        plt.subplot(1,len(syllable),i+1)
+        plt.title(i)
+
+        plt.xticks([])
+        plt.yticks([])
+        plt.specgram(y[:,0][start:end], Fs = x)
+
+    plt.show()
+
 
 def draw_spectrogram(wav_file):
     x, y = wavfile.read(wav_file)
