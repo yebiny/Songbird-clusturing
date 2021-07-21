@@ -63,12 +63,16 @@ class DataProcess():
         return arr
 
     def get_dataset(self):
-        dataset = []
+        valset = []
+        imgset = []
         print('* Start process...  total syllables: %i'%len(self.sylla_list))
         for idx in range(len(self.sylla_list)):
+            x, val = self.get_syllable_value(idx)
             arr = self.img2arr(idx)
-            dataset.append(arr)
+            imgset.append(arr)
+            valset.append(val)
             if idx%100==0:
                 print(idx)
-        dataset = np.array(dataset)
-        return dataset
+        imgset = np.array(imgset)
+        valset = np.array(valset, dtype=object)
+        return valset, imgset
