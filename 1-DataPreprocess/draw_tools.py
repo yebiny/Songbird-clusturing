@@ -68,10 +68,13 @@ def draw_wav(wav_file):
     plt.show()
 
 
-def hist_syllable_lenth(sylla_len, axis=None):
+def hist_syllable_lenth(sylla_len, axis=None, save=None):
    if axis !=None:
        plt.hist(sylla_len, color = c_base, range = axis, alpha = 0.6, bins=50)
    else:
        plt.hist(sylla_len, color = c_base, alpha = 0.6, bins=50)
    plt.title('Syllables Lenth Histogram')
+
+   if save:
+    plt.savefig(save)
    plt.show()
