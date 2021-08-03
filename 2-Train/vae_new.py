@@ -10,28 +10,28 @@ from tensorflow.keras import backend as K
 
 class VAE():
 
-    def __init__(self, encoder, decoder, img_shape):
+    def __init__(self, encoder, decoder, img_shape, val_shape):
         self.encoder = encoder
         self.decoder = decoder
         self.img_shape = img_shape
+        self.val_shape = val_shape
 
     def compile(self, optimizer = tf.keras.optimizers.Adam(0.001)):
-        inputs = layers.Input(shape=self.img_shape, name = 'vae_inputs')
-        z_log_var, z_mean, z = self.encoder(inputs)
+        img_inputs = layers.Input(shape=self.img_shape, name = 'img_inputs')
+        val_inputs = layers.Input(shape=self.val_shape, name = 'val_inputs')
+        z_log_var, z_mean, z = self.encoder([img_inputs, val_inputs])
         outputs = self.decoder(z)
-        self.vae = models.Model(inputs, outputs, name = 'vae')
+        self.vae = models.Model([img_inputs, val_inputs], outputs, name = 'WaveVAE')
         self.optimizer = optimizer
     
-    def _make_dataset(self, x_val, x_len,  batch_size):
-        train_ds = tf.data.Dataset.from_tensor_slices((x_val, x_len)).batch(batch_size)
+    def _make_dataset(self, x_img, x_val,  batch_size):
+        train_ds = tf.data.Dataset.from_tensor_slices((x_img, x_val)).batch(batch_size)
         return train_ds
     
     def _get_rec_loss(self, inputs, predictions):
-        mask = K.all(K.equal(inputs, 0), axis=-1)
-        mask = 1-K.cast(mask, K.floatx())
-        
-        rec_loss = tf.keras.losses.mse(inputs, predictions) * mask
+        rec_loss = tf.keras.losses.binary_crossentropy(inputs, predictions)
         rec_loss = tf.reduce_mean(rec_loss)
+        rec_loss *= self.img_shape[0]*self.img_shape[1]
         return rec_loss
     
     def _get_kl_loss(self, z_log_var, z_mean):
@@ -41,14 +41,14 @@ class VAE():
         return kl_loss
     
     @tf.function
-    def _train_step(self, vals, lens):
+    def _train_step(self, imgs, vals):
         with tf.GradientTape() as tape:
     
             # Get model ouputs
-            z_log_var, z_mean, z = self.encoder(vals)
-            rec_vals = self.decoder(z)
+            z_log_var, z_mean, z = self.encoder([imgs, vals])
+            rec_imgs = self.decoder(z)
          
-            rec_loss = self._get_rec_loss(vals, rec_vals)
+            rec_loss = self._get_rec_loss(imgs, rec_imgs)
             kl_loss = self._get_kl_loss(z_log_var, z_mean)
             loss = rec_loss + kl_loss
     
@@ -71,9 +71,9 @@ class VAE():
         
         return mn_loss
 
-    def fit(self, x_val, x_len,  epochs=1, batch_size=16, img_iter=1, save_path=None):
+    def fit(self, x_img, x_val,  epochs=1, batch_size=16, img_iter=1, save_path=None):
         
-        train_ds = self._make_dataset(x_val, x_len, batch_size)
+        train_ds = self._make_dataset(x_img, x_val, batch_size)
         loss_name = ['loss', 'rec_loss', 'kl_loss']
         
         ## set history ##
@@ -85,8 +85,8 @@ class VAE():
             for h in history: history[h].append(0)
             
             ## batch-trainset ##
-            for batch_vals, batch_lens in train_ds:
-                losses = self._train_step(batch_vals, batch_lens)
+            for batch_imgs, batch_vals in train_ds:
+                losses = self._train_step(batch_imgs, batch_vals)
                  
                 for name, loss in zip(loss_name, losses): history[name][-1]+=loss
             
@@ -96,8 +96,8 @@ class VAE():
             
             ## save sample image ##
             if epoch%img_iter==0:
-                print(batch_vals.shape)
-                self.plot_sample_imgs(batch_vals, save_path=save_path)
+                print(batch_imgs.shape)
+                self.plot_sample_imgs(batch_imgs, batch_vals, save_path=save_path)
 
             ## save best model ##
             if save_path:
@@ -106,17 +106,17 @@ class VAE():
         
         return history 
 
-    def plot_sample_imgs(self, imgs, n=10, save_path=None):
+    def plot_sample_imgs(self, imgs, vals, n=10, save_path=None):
         plt.figure(figsize=(n,2))
-        rec_vals = self.vae.predict(imgs[:n])
-        print(imgs.shape, rec_vals.shape)
-        for i, (img, rec_img) in enumerate(zip(imgs, rec_vals)):
+        rec_imgs = self.vae.predict([imgs[:n], vals[:n]])
+        print(imgs.shape, rec_imgs.shape)
+        for i, (img, rec_img) in enumerate(zip(imgs, rec_imgs)):
             plt.subplot(2,n,i+1)
-            plt.plot(img[:,0], c='orange', alpha=0.7)
+            plt.imshow(img[:,:,0])
             plt.xticks([])
             plt.yticks([])
             plt.subplot(2,n,n+i+1)
-            plt.plot(rec_img[:,0], c='blue', alpha=0.7)
+            plt.imshow(rec_img[:,:,0])
             plt.xticks([])
             plt.yticks([])
         
