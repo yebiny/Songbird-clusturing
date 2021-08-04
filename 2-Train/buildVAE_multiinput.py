@@ -77,15 +77,17 @@ class WaveVAE():
                               padding='causal',
                               name='dilated_conv_%i'%dr)(y)
         
-        y = layers.AveragePooling1D(10, padding='same')(y)
+        y = layers.AveragePooling1D(20, padding='same')(y)
         y = layers.Conv1D(20, 100, padding='same', activation='relu')(y)
         y = layers.Conv1D(20, 100, padding='same', activation='relu')(y)
-        y = layers.AveragePooling1D(10, padding='same')(y)
+        y = layers.AveragePooling1D(20, padding='same')(y)
         val_y = layers.Reshape((y.shape[1]*y.shape[2],))(y)
         val_encoder = models.Model(val_inputs, val_y, name='ValEncoder')
 
         y_img = img_encoder(img_inputs)
         y_val = val_encoder(val_inputs)
+        y_img = layers.Dropout(0.5)(y_img)
+        
         y = layers.Concatenate()([y_img, y_val])
         z_mean = layers.Dense(self.z_dim)(y)
         z_log_var = layers.Dense(self.z_dim)(y)
