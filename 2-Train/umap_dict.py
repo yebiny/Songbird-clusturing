@@ -1,6 +1,7 @@
 import umap
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import numpy as np
 
 def plot_project(x, save=None):
 
