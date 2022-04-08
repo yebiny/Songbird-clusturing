@@ -1,2 +1,1 @@
-# birdSong
-Bird's song Clustering with VAE
+Clustur and classify the bird songs using VAE(Variational AutoEncoder) 
