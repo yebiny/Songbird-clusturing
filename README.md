@@ -1,3 +1,5 @@
 # Songbird-Clusturing
 
-Clustur and classify the bird songs using VAE(Variational AutoEncoder) 
+Bengalese finch's songs can be divided into several categories. The songs are clustered through the VAE (variational auto encoder) and the results are analyzed.
+
+## 
