@@ -85,8 +85,8 @@ class TrainVAE():
             l_rate = optimizer.learning_rate.numpy()
         
             # Control learning rate
-            count, lr  = reduce_lr(best_loss, t_loss, count, l_rate, 5, 0.2, 0.00001)
-            optimizer.learning_rate = lr
+            #count, lr  = reduce_lr(best_loss, t_loss, count, l_rate, 5, 0.2, 0.00001)
+            #optimizer.learning_rate = lr
             
             # Save checkpoint if best v_loss 
             if t_loss < best_loss:
